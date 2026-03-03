@@ -6,6 +6,7 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 
 // Importación de middlewares externos
+// Corregido: Asegúrate de que la ruta coincide con la estructura de carpetas
 const updateObjectUser = require("./middleware/context.middleware");
 const authRoutes = require("./routes/auth.routes");
 
@@ -36,6 +37,7 @@ app.use(
 app.use(updateObjectUser);
 
 // 4. Estáticos y Vistas
+// Unificado: Servimos la carpeta public que está un nivel por encima de /src
 app.use(express.static(path.join(__dirname, "..", "public")));
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "..", "views"));

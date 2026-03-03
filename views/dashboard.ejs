@@ -2,20 +2,63 @@
 <html lang="es">
     <head>
         <meta charset="UTF-8">
-        <title>Dashboard</title>
-        <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #f0f2f5; }
-        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
-        .btn { display: inline-block; margin-top: 1rem; padding: 10px 20px; background: #ff4757; color: white; text-decoration: none; border-radius: 5px; }
-    </style>
+        <title>Inspector - Rastreacom</title>
+        <link rel="stylesheet" href="/css/style.css">
     </head>
     <body>
-        <div class="card">
-            <h1>¡Hola, <%= currentUser.nombre %>!</h1>
-            <p>Tu correo registrado es: <strong><%= currentUser.email
-                    %></strong></p>
-            <p>Edad: <%= currentUser.edad %></p>
-            <a href="/auth/logout" class="btn">Cerrar Sesión</a>
+
+        <div class="header">
+            <div style="display:flex; align-items:center; gap:15px;">
+                <h2 style="margin:0;">🔎 Inspector</h2>
+                <form action="/auth/buscar" method="POST"
+                    style="display:flex; gap:8px;">
+                    <input type="text" name="query" placeholder="Ej: Puig Samba"
+                        required>
+                    <button type="submit" class="btn-search">Buscar</button>
+                </form>
+            </div>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <span>Hola, <strong><%= currentUser.nombre %></strong></span>
+                <form action="/auth/borrar" method="POST">
+                    <button type="submit" class="btn-clear">Vaciar DB</button>
+                </form>
+                <a href="/auth/logout"
+                    style="color:red; text-decoration:none; font-size:0.8em;">Salir</a>
+            </div>
         </div>
+
+        <div class="wrapper">
+            <div class="sidebar">
+                <div class="user-info">
+                    Conectado: <%= currentUser.email %>
+                </div>
+                <div class="tabs">
+                    <button class="tab-btn active"
+                        onclick="cambiarTienda('Zalando')">Zalando</button>
+                    <button class="tab-btn"
+                        onclick="cambiarTienda('Adidas')">Adidas</button>
+                </div>
+                <div id="product-list"></div>
+                <div class="pagination" id="pagination"></div>
+            </div>
+
+            <div class="content">
+                <div class="inspector-header">
+                    <h4 id="ins-titulo"
+                        style="margin:0 0 10px 0; color:white;">Selecciona un
+                        producto</h4>
+                    <input type="text" id="ins-filter" class="filter-box"
+                        placeholder="Filtrar en JSON..."
+                        onkeyup="filtrarJson()">
+                </div>
+                <pre
+                    id="jsonViewer">// Selecciona un item para inspeccionar el JSON</pre>
+            </div>
+        </div>
+
+        <script>
+        const todosLosProductos = <%- JSON.stringify(productos) %>;
+    </script>
+        <script src="/js/inspector.js"></script>
     </body>
 </html>

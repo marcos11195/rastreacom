@@ -2,6 +2,7 @@
   app:
     build: .
     container_name: node_rastreacom
+    shm_size: '2gb' # Añade esto para evitar que Puppeteer pete en Docker
     ports:
       - "3000:3000"
       - "9229:9229" # Puerto para el Debugger

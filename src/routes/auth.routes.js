@@ -1,6 +1,8 @@
 const express = require("express");
 const bcrypt = require("bcrypt");
 const User = require("../models/User.model");
+const { Producto, RawData } = require("../models/Scrap.model");
+const { buscarYVincular } = require("../services/scraper");
 const router = express.Router();
 
 // Importación de middlewares externos
@@ -93,9 +95,44 @@ router.post("/login", async (req, res) => {
 });
 
 // DASHBOARD
-router.get("/dashboard", isLoggedIn, (req, res) => {
-  // Nota: 'currentUser' ya está en res.locals gracias al middleware de contexto
-  res.render("dashboard");
+router.get("/dashboard", isLoggedIn, async (req, res) => {
+  try {
+    // Obtenemos los productos para pasarlos al inspector del dashboard
+    const productos = await Producto.find().sort({ createdAt: -1 });
+    // Nota: 'currentUser' ya está en res.locals gracias al middleware de contexto
+    res.render("dashboard", { productos });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ message: "Error al cargar el dashboard" });
+  }
+});
+
+// API RAW DATA (Para el inspector JSON)
+router.get("/api/raw/:id", isLoggedIn, async (req, res) => {
+  try {
+    const data = await RawData.findOne({ productoId: req.params.id });
+    res.json(data || { jsonContenido: "{}" });
+  } catch (error) {
+    res.status(500).json({ error: "Error al obtener data" });
+  }
+});
+
+// BUSCAR (Dispara el scraper)
+router.post("/buscar", isLoggedIn, (req, res) => {
+  // Ejecuta el scraping en segundo plano y capturamos error para que no mate el proceso modular
+  buscarYVincular(req.body.query).catch(err => console.error("Error Scraper:", err));
+  res.redirect("/auth/dashboard"); 
+});
+
+// BORRAR (Limpia la base de datos de productos)
+router.post("/borrar", isLoggedIn, async (req, res) => {
+  try {
+    await Producto.deleteMany({});
+    await RawData.deleteMany({});
+    res.redirect("/auth/dashboard");
+  } catch (error) {
+    res.status(500).send({ message: "Error al borrar datos" });
+  }
 });
 
 // LOGOUT
