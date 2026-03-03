@@ -1,0 +1,44 @@
+﻿services:
+  app:
+    build: .
+    container_name: node_rastreacom
+    ports:
+      - "3000:3000"
+      - "9229:9229" # Puerto para el Debugger
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    env_file:
+      - .env
+    depends_on:
+      - mongo
+    # Unificamos aquí: quitamos npm run dev y ponemos el comando de debug
+    command: node --inspect=0.0.0.0:9229 --watch src/index.js
+
+  mongo:
+    image: mongo:7
+    container_name: mongo_rastreacom
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: root123
+      MONGO_INITDB_DATABASE: appdb
+    volumes:
+      - mongo_data:/data/db
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo_express_rastreacom
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: root123
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_BASICAUTH: "false"
+    depends_on:
+      - mongo
+
+volumes:
+  mongo_data:

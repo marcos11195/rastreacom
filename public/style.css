@@ -1,0 +1,150 @@
+html,
+body {
+    height: 100%;
+}
+
+body {
+    padding-top: 0;
+    background-color: #ffe6f0;
+    display: flex;
+    flex-direction: column;
+}
+
+main { padding-top: 1rem; }
+
+/* form cards pink tint */
+.card {
+    background-color: #fff0f6;
+}
+
+main {
+    flex: 1;
+}
+
+
+.card {
+    border-radius: 8px;
+}
+
+/* pink headers */
+.navbar {
+    background-color: transparent !important;
+    color: #fff;
+}
+
+.navbar .navbar-brand {
+    color: #fff !important;
+}
+
+/* inputs and buttons */
+.form-control:focus {
+    border-color: #ff66b2;
+    box-shadow: 0 0 0 .2rem rgba(255, 102, 178, .25);
+}
+
+.btn-primary {
+    background-color: #ff66b2;
+    border-color: #ff66b2;
+}
+.btn-primary:hover, .btn-primary:focus {
+    background-color: #ff3385;
+    border-color: #ff3385;
+}
+
+.btn-success {
+    background-color: #ff99cc;
+    border-color: #ff99cc;
+}
+.btn-success:hover, .btn-success:focus {
+    background-color: #ff80b3;
+    border-color: #ff80b3;
+}
+
+.btn-outline-primary {
+    color: #ff66b2;
+    border-color: #ff66b2;
+}
+
+.btn-outline-primary:hover {
+    background-color: #ff66b2;
+    color: #fff;
+}
+
+/* heading in forms */
+.card-body h3 {
+    color: #ff66b2;
+}
+
+/* links */
+a,
+.card-body a {
+    color: #ff66b2;
+    text-decoration: none;
+}
+
+/* index images */
+.index-img {
+    width: 60%;
+    max-width: 300px;
+    border-radius: 12px;
+    margin: 0.5rem;
+}
+
+a:hover,
+.card-body a:hover {
+    color: #ff3385;
+    text-decoration: underline;
+}
+
+header {
+    margin-bottom: 20px;
+    position: relative;
+    width: 100%;
+    background: linear-gradient(135deg, #ffc0cb 0%, #ff99cc 100%);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    overflow: hidden;
+    padding: 0.5rem 0;
+}
+
+header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 200%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
+    transform: translateX(-50%) translateY(-50%) rotate(30deg);
+    pointer-events: none;
+}
+
+.card-header {
+    background-color: #ff99cc !important;
+    color: #333;
+}
+
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* center forms on small screens */
+@media (max-width: 576px) {
+    .card {
+        margin: 0 1rem;
+    }
+}
+
+#resultsArea h4 { color: #ff66b2; margin-top:1rem; }
+#resultsArea a { color: #ff66b2; }
+
+footer {
+    background-color: #ffc0cb;
+    color: #333;
+    margin-top: auto;
+}
+
+header {
+    margin-bottom: 20px;
+}

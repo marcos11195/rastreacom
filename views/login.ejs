@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Login - RastreaFormacom</title>
+        <link
+            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+            rel="stylesheet">
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body class="bg-light">
+        <header>
+            <nav class="navbar navbar-light bg-light">
+                <div class="container">
+                    <a class="navbar-brand" href="/">RastreaFormacom</a>
+                </div>
+            </nav>
+        </header>
+        <main class="flex-grow-1">
+            <div class="container mt-5">
+                <div class="card mx-auto shadow" style="max-width:400px;">
+                    <div class="card-body">
+                        <h3 class="text-success mb-3">Login</h3>
+
+                        <div id="loginMessage" class="mb-3 text-center"></div>
+
+                        <form id="loginForm" action="/auth/login" method="POST">
+                            <div class="mb-3">
+                                <input type="email" id="email" name="email"
+                                    class="form-control" placeholder="Email"
+                                    required>
+                            </div>
+                            <div class="mb-3">
+                                <input type="password" id="password"
+                                    name="password"
+                                    class="form-control" placeholder="Password"
+                                    required>
+                            </div>
+                            <button class="btn btn-success w-100"
+                                type="submit">Entrar</button>
+                        </form>
+
+                        <p class="mt-3 text-center">
+                            <a href="/auth/register">Crear cuenta</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center py-3 mt-4" style="background:#ffc0cb;">
+            <div class="container">
+                <small>&copy; 2026 RastreaFormacom. Todos los derechos
+                    reservados.</small>
+            </div>
+        </footer>
+    </body>
+</html>
