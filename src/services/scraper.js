@@ -9,21 +9,70 @@ async function extraerMetadatosProfundos(page, url) {
             const scripts = Array.from(document.querySelectorAll('script[type="application/ld+json"]'));
             let precioFinal = "S/P";
             let rawJsons = [];
+            let preciosEncontrados = [];
+
             for (const s of scripts) {
                 try {
                     const texto = s.innerText;
                     rawJsons.push(texto);
-                    const match = texto.match(/"price"\s*:\s*"?([\d.,]+)"?/i);
-                    if (match && match[1]) {
-                        precioFinal = `${match[1]} €`;
-                        break; 
-                    }
+                    const obj = JSON.parse(texto);
+
+                    // Función recursiva inteligente que filtra por disponibilidad (InStock)
+                    const buscarPreciosInteligentes = (o) => {
+                        if (!o || typeof o !== 'object') return;
+                        
+                        // Si es un objeto que contiene ofertas (talla individual o grupo)
+                        if (o["@type"] === "Product" || o.offers) {
+                            const ofertas = Array.isArray(o.offers) ? o.offers : [o.offers];
+                            
+                            ofertas.forEach(oferta => {
+                                if (oferta) {
+                                    const stock = oferta.availability || "";
+                                    const valorPrecio = parseFloat(oferta.price || o.price);
+                                    
+                                    // SOLO guardamos el precio si tiene stock disponible
+                                    if (valorPrecio && stock.toLowerCase().includes("instock")) {
+                                        preciosEncontrados.push(valorPrecio);
+                                    }
+                                }
+                            });
+                        }
+
+                        // Explorar el resto de propiedades (recursivo)
+                        Object.values(o).forEach(v => buscarPreciosInteligentes(v));
+                    };
+
+                    buscarPreciosInteligentes(obj);
                 } catch(e) {}
             }
+
+            // Si hay precios con stock, elegimos el mínimo disponible
+            if (preciosEncontrados.length > 0) {
+                const minimo = Math.min(...preciosEncontrados.filter(p => !isNaN(p)));
+                precioFinal = `${minimo} €`;
+            }
+
+            // --- PLAN B: Selectores visuales (si el JSON no dio resultados útiles) ---
+            if (precioFinal === "S/P") { 
+                const selectoresPrecio = ['span[class*="price"]', 'p[class*="price"]', '.re-16.p-14'];
+                for (let selector of selectoresPrecio) {
+                    const el = document.querySelector(selector);
+                    if (el && el.innerText.includes('€')) {
+                        const num = el.innerText.replace(/[^\d.,]/g, '').replace(',', '.');
+                        if (num) {
+                            precioFinal = `${num} €`;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            // --- PLAN C: DataLayer ---
             if (precioFinal === "S/P") {
                 const ad = dataLayer.find(d => d.productPrice || d.u26);
                 if (ad) precioFinal = `${ad.productPrice || ad.u26} €`;
             }
+
             return {
                 precio: precioFinal,
                 json: JSON.stringify({ scripts: rawJsons, dataLayer: dataLayer }, null, 2)
@@ -72,7 +121,7 @@ async function buscarYVincular(query) {
                             results.push({ nombre: a.innerText.trim().split('\n')[0] || "Producto", link: a.href });
                         }
                     });
-                    return results.slice(0, 15); // Ampliado a 15 para tener más datos
+                    return results.slice(0, 15);
                 }, query);
 
                 console.log(`[${f.nombre}] Se han encontrado ${links.length} enlaces potenciales.`);
@@ -96,6 +145,7 @@ async function buscarYVincular(query) {
 
                         const existeData = await RawData.exists({ productoId: p._id });
                         
+                        // Si el precio es S/P o Error, intentamos extraerlo con la nueva lógica
                         if (!existeData || p.precio === "S/P" || p.precio === "Error") {
                             const data = await extraerMetadatosProfundos(page, item.link);
                             await Producto.findByIdAndUpdate(p._id, { precio: data.precio });
