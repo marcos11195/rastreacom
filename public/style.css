@@ -1,3 +1,4 @@
+/* --- CONFIGURACIÓN GLOBAL --- */
 html,
 body {
     height: 100%;
@@ -8,25 +9,37 @@ body {
     background-color: #ffe6f0;
     display: flex;
     flex-direction: column;
-}
-
-main { padding-top: 1rem; }
-
-/* form cards pink tint */
-.card {
-    background-color: #fff0f6;
+    font-family: sans-serif;
 }
 
 main {
+    padding-top: 1rem;
     flex: 1;
 }
 
-
-.card {
-    border-radius: 8px;
+/* --- HEADER Y NAVBAR --- */
+header {
+    margin-bottom: 20px;
+    position: relative;
+    width: 100%;
+    background: linear-gradient(135deg, #ffc0cb 0%, #ff99cc 100%);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    padding: 0.5rem 0;
 }
 
-/* pink headers */
+header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 200%;
+    height: 100%;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
+    transform: translateX(-50%) translateY(-50%) rotate(30deg);
+    pointer-events: none;
+}
+
 .navbar {
     background-color: transparent !important;
     color: #fff;
@@ -36,7 +49,28 @@ main {
     color: #fff !important;
 }
 
-/* inputs and buttons */
+.navbar .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* --- CARDS ROSAS --- */
+.card {
+    background-color: #fff0f6;
+    border-radius: 8px;
+}
+
+.card-header {
+    background-color: #ff99cc !important;
+    color: #333;
+}
+
+.card-body h3 {
+    color: #ff66b2;
+}
+
+/* --- INPUTS Y BOTONES --- */
 .form-control:focus {
     border-color: #ff66b2;
     box-shadow: 0 0 0 .2rem rgba(255, 102, 178, .25);
@@ -46,7 +80,9 @@ main {
     background-color: #ff66b2;
     border-color: #ff66b2;
 }
-.btn-primary:hover, .btn-primary:focus {
+
+.btn-primary:hover,
+.btn-primary:focus {
     background-color: #ff3385;
     border-color: #ff3385;
 }
@@ -55,7 +91,9 @@ main {
     background-color: #ff99cc;
     border-color: #ff99cc;
 }
-.btn-success:hover, .btn-success:focus {
+
+.btn-success:hover,
+.btn-success:focus {
     background-color: #ff80b3;
     border-color: #ff80b3;
 }
@@ -70,24 +108,11 @@ main {
     color: #fff;
 }
 
-/* heading in forms */
-.card-body h3 {
-    color: #ff66b2;
-}
-
-/* links */
+/* --- LINKS --- */
 a,
 .card-body a {
     color: #ff66b2;
     text-decoration: none;
-}
-
-/* index images */
-.index-img {
-    width: 60%;
-    max-width: 300px;
-    border-radius: 12px;
-    margin: 0.5rem;
 }
 
 a:hover,
@@ -96,55 +121,28 @@ a:hover,
     text-decoration: underline;
 }
 
-header {
-    margin-bottom: 20px;
-    position: relative;
-    width: 100%;
-    background: linear-gradient(135deg, #ffc0cb 0%, #ff99cc 100%);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    overflow: hidden;
-    padding: 0.5rem 0;
+/* --- ELEMENTOS VARIOS --- */
+.index-img {
+    width: 60%;
+    max-width: 300px;
+    border-radius: 12px;
+    margin: 0.5rem;
 }
 
-header::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 200%;
-    height: 100%;
-    background: radial-gradient(circle at center, rgba(255,255,255,0.3) 0%, transparent 70%);
-    transform: translateX(-50%) translateY(-50%) rotate(30deg);
-    pointer-events: none;
+#resultsArea h4 {
+    color: #ff66b2;
+    margin-top: 1rem;
 }
-
-.card-header {
-    background-color: #ff99cc !important;
-    color: #333;
-}
-
-.navbar .container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-/* center forms on small screens */
-@media (max-width: 576px) {
-    .card {
-        margin: 0 1rem;
-    }
-}
-
-#resultsArea h4 { color: #ff66b2; margin-top:1rem; }
-#resultsArea a { color: #ff66b2; }
 
 footer {
     background-color: #ffc0cb;
     color: #333;
     margin-top: auto;
+    padding: 10px 0;
 }
 
-header {
-    margin-bottom: 20px;
+@media (max-width: 576px) {
+    .card {
+        margin: 0 1rem;
+    }
 }

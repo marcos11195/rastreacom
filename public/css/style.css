@@ -1,3 +1,4 @@
+/* --- ESTILOS BASE --- */
 html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; background: #f0f2f5; }
 .header { height: 70px; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; z-index: 100; }
 .wrapper { display: flex; height: calc(100vh - 70px); width: 100vw; }
@@ -10,13 +11,76 @@ html, body { height: 100%; margin: 0; overflow: hidden; font-family: 'Segoe UI',
 .content { flex-grow: 1; height: 100%; display: flex; flex-direction: column; background: #1e1e1e; overflow: hidden; }
 .inspector-header { padding: 15px; background: #2d2d2d; border-bottom: 1px solid #444; }
 #jsonViewer { flex-grow: 1; overflow: auto; padding: 20px; margin: 0; font-family: 'Consolas', monospace; font-size: 13px; line-height: 1.5; color: #9cdcfe; background: #000; white-space: pre-wrap; }
-.card { background: white; padding: 12px; margin-bottom: 10px; border-radius: 6px; border-left: 4px solid #0e639c; cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1); position: relative; }
-.card.active { border-left-color: #ffea00; background: #eef6fb; }
-.price-badge { position: absolute; right: 10px; top: 10px; background: #e6fffa; color: #2c7a7b; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; border: 1px solid #b2f5ea; }
-.pagination { padding: 10px; background: #fff; border-top: 1px solid #ddd; display: flex; justify-content: center; gap: 5px; }
-.page-btn { padding: 4px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; }
-.page-btn.active { background: #0e639c; color: white; border-color: #0e639c; }
-.filter-box { width: 100%; padding: 10px; background: #3c3c3c; border: 1px solid #555; color: #fff; border-radius: 4px; box-sizing: border-box; }
-.highlight { background: #ffea00; color: #000; font-weight: bold; }
 .btn-search { background: #0e639c; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
 .btn-clear { background: #a31515; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; }
+
+/* --- PAGINACIÓN --- */
+.pagination { padding: 10px; display: flex; justify-content: center; gap: 5px; background: #fff; border-top: 1px solid #ddd; }
+.page-btn { padding: 5px 10px; border: 1px solid #ccc; background: white; cursor: pointer; border-radius: 3px; }
+.page-btn.active { background: #0e639c; color: white; border-color: #0e639c; }
+
+/* --- SPINNER DE CARGA --- */
+.spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(14, 99, 156, 0.2);
+    border-radius: 50%;
+    border-top-color: #0e639c;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-search:disabled { background-color: #a0aec0; cursor: not-allowed; }
+
+/* --- CARDS DE PRODUCTO --- */
+.product-card {
+    background: #fff;
+    border: 1px solid #e1e4e8;
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.product-card:hover {
+    border-color: #0e639c;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.product-card.active {
+    border-left: 4px solid #0e639c;
+    background: #f0f7ff;
+}
+
+.product-card .price {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 4px;
+}
+
+.product-card .brand {
+    font-size: 0.7em;
+    color: #888;
+    font-weight: bold;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+}
+
+.product-card .link-btn {
+    display: inline-block;
+    font-size: 0.75em;
+    color: #0e639c;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.product-card .link-btn:hover { text-decoration: underline; }
+
+.highlight { background-color: #ffd33d; color: #000; }

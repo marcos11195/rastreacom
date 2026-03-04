@@ -107,6 +107,16 @@ router.get("/dashboard", isLoggedIn, async (req, res) => {
   }
 });
 
+// API PRODUCTOS (NUEVO: Para actualizar en vivo)
+router.get("/api/productos", isLoggedIn, async (req, res) => {
+  try {
+    const productos = await Producto.find().sort({ createdAt: -1 });
+    res.json(productos);
+  } catch (error) {
+    res.status(500).json([]);
+  }
+});
+
 // API RAW DATA (Para el inspector JSON)
 router.get("/api/raw/:id", isLoggedIn, async (req, res) => {
   try {
@@ -117,11 +127,12 @@ router.get("/api/raw/:id", isLoggedIn, async (req, res) => {
   }
 });
 
-// BUSCAR (Dispara el scraper)
+// BUSCAR (Modificado: No bloqueante para actualización en vivo)
 router.post("/buscar", isLoggedIn, (req, res) => {
-  // Ejecuta el scraping en segundo plano y capturamos error para que no mate el proceso modular
+  // Quitamos el await para que el scraper corra en background
   buscarYVincular(req.body.query).catch(err => console.error("Error Scraper:", err));
-  res.redirect("/auth/dashboard"); 
+  // Respondemos rápido para que el Dashboard inicie el ciclo de refresco
+  res.status(200).send("Scraping iniciado");
 });
 
 // BORRAR (Limpia la base de datos de productos)

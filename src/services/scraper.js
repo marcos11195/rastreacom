@@ -56,10 +56,13 @@ async function buscarYVincular(query) {
             { nombre: 'Adidas', url: `https://www.adidas.es/search?q=${encodeURIComponent(query)}` }
         ];
 
+        console.log(`--- INICIANDO SCRAPING PARA: "${query}" ---`);
+
         for (const f of fuentes) {
             try {
-                console.log(`Iniciando búsqueda en: ${f.nombre}`);
+                console.log(`\n[${f.nombre}] Accediendo a la fuente...`);
                 await page.goto(f.url, { waitUntil: 'domcontentloaded', timeout: 45000 });
+                
                 const links = await page.evaluate((q) => {
                     const results = [];
                     const words = q.toLowerCase().split(' ');
@@ -69,13 +72,16 @@ async function buscarYVincular(query) {
                             results.push({ nombre: a.innerText.trim().split('\n')[0] || "Producto", link: a.href });
                         }
                     });
-                    return results.slice(0, 10);
+                    return results.slice(0, 15); // Ampliado a 15 para tener más datos
                 }, query);
 
+                console.log(`[${f.nombre}] Se han encontrado ${links.length} enlaces potenciales.`);
+
+                let index = 1;
                 for (const item of links) {
                     try {
-                        // Cambiamos la lógica para evitar el error de ObjectId inexistente
-                        // Primero buscamos o creamos el producto de forma limpia
+                        console.log(`   (${index}/${links.length}) Procesando: ${item.nombre.substring(0, 40)}...`);
+                        
                         let p = await Producto.findOne({ enlace: item.link });
                         
                         if (!p) {
@@ -92,8 +98,6 @@ async function buscarYVincular(query) {
                         
                         if (!existeData || p.precio === "S/P" || p.precio === "Error") {
                             const data = await extraerMetadatosProfundos(page, item.link);
-                            
-                            // Actualizamos usando el modelo directamente para asegurar persistencia
                             await Producto.findByIdAndUpdate(p._id, { precio: data.precio });
                             await RawData.findOneAndUpdate(
                                 { productoId: p._id }, 
@@ -102,15 +106,18 @@ async function buscarYVincular(query) {
                             );
                         }
                     } catch (err) { 
-                        console.error("Error en item:", err.message);
-                        continue; 
+                        console.error(`   [!] Error en item ${index}:`, err.message);
                     }
+                    index++;
                 }
-            } catch (err) { console.error("Fallo en fuente:", f.nombre); }
+            } catch (err) { 
+                console.error(`[!] Error grave en fuente ${f.nombre}:`, err.message); 
+            }
         }
+        console.log(`\n--- SCRAPING FINALIZADO PARA: "${query}" ---`);
     } finally {
         await browser.close();
-        console.log("Navegador cerrado.");
+        console.log("Navegador cerrado correctamente.");
     }
 }
 

@@ -10,12 +10,17 @@
         <div class="header">
             <div style="display:flex; align-items:center; gap:15px;">
                 <h2 style="margin:0;">🔎 Inspector</h2>
-                <form action="/auth/buscar" method="POST"
+                <form id="searchForm" action="/auth/buscar" method="POST"
                     style="display:flex; gap:8px;">
                     <input type="text" name="query" placeholder="Ej: Puig Samba"
                         required>
                     <button type="submit" class="btn-search">Buscar</button>
                 </form>
+
+                <div id="loadingStatus"
+                    style="display:none; align-items:center; gap:8px; margin-left:10px; color:#0e639c; font-weight:bold; font-size:0.9em;">
+                    <div class="spinner"></div> Buscando...
+                </div>
             </div>
             <div style="display:flex; align-items:center; gap:15px;">
                 <span>Hola, <strong><%= currentUser.nombre %></strong></span>
@@ -57,8 +62,71 @@
         </div>
 
         <script>
-        const todosLosProductos = <%- JSON.stringify(productos) %>;
-    </script>
+            let todosLosProductos = <%- JSON.stringify(productos) %>;
+            let refreshInterval = null;
+            let stableTicks = 0; 
+
+            document.getElementById('searchForm').onsubmit = async function(e) {
+                e.preventDefault();
+                
+                document.getElementById('loadingStatus').style.display = 'flex';
+                const btn = this.querySelector('.btn-search');
+                btn.disabled = true;
+
+                const formData = new FormData(this);
+                const query = new URLSearchParams(formData).toString();
+
+                fetch('/auth/buscar', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: query
+                });
+
+                if (refreshInterval) clearInterval(refreshInterval);
+                stableTicks = 0;
+                
+                refreshInterval = setInterval(async () => {
+                    try {
+                        const res = await fetch('/auth/api/productos');
+                        const data = await res.json();
+                        
+                        // 1. Comprobamos si hay algún producto que aún no tenga precio final
+                        const hayPendientes = data.some(p => !p.precio || p.precio === 'Pendiente...' || p.precio === 'S/P');
+                        
+                        // 2. Comprobamos si los datos han cambiado (nuevos items o precios actualizados)
+                        const haCambiado = (data.length !== todosLosProductos.length || JSON.stringify(data) !== JSON.stringify(todosLosProductos));
+
+                        if (haCambiado) {
+                            todosLosProductos = data;
+                            stableTicks = 0; 
+                            if (typeof renderizar === 'function') renderizar();
+                        } else if (!hayPendientes) {
+                            // 3. Si no ha cambiado nada Y no hay precios pendientes, sumamos tick
+                            stableTicks++;
+                        }
+
+                        // Si en 2 ciclos (4 segundos) no hay NADA nuevo y todo está procesado, cerramos
+                        // Bajamos de 15 a 2 ticks para que sea casi instantáneo al terminar
+                        if (stableTicks >= 2) {
+                            detenerPolling(btn);
+                        }
+                    } catch (err) {
+                        console.error("Error actualizando productos:", err);
+                    }
+                }, 2000);
+
+                setTimeout(() => detenerPolling(btn), 300000);
+            };
+
+            function detenerPolling(btn) {
+                if (refreshInterval) {
+                    clearInterval(refreshInterval);
+                    refreshInterval = null;
+                }
+                document.getElementById('loadingStatus').style.display = 'none';
+                btn.disabled = false;
+            }
+        </script>
         <script src="/js/inspector.js"></script>
     </body>
 </html>
