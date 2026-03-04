@@ -24,11 +24,36 @@ function renderizar() {
     } else {
         listDiv.innerHTML = itemsAMostrar.map(p => {
             const displayPrecio = (p.precio && p.precio !== 'S/P' && !p.precio.includes('undefined')) ? p.precio : 'Pendiente...';
+            
+            // --- LÓGICA DE PINTADO DE TENDENCIA ---
+            let tendenciaHTML = '';
+            let colorPrecio = '#000'; // Color por defecto
+
+            if (p.tendencia === 'bajada') {
+                colorPrecio = '#27ae60'; // Verde
+                tendenciaHTML = `
+                    <span style="color: ${colorPrecio}; font-weight: bold; margin-left: 5px;">↓</span>
+                    <div style="font-size: 0.75em; color: #7f8c8d; text-decoration: line-through;">
+                        Antes: ${p.precioAnterior}
+                    </div>
+                `;
+            } else if (p.tendencia === 'subida') {
+                colorPrecio = '#e74c3c'; // Rojo
+                tendenciaHTML = `
+                    <span style="color: ${colorPrecio}; font-weight: bold; margin-left: 5px;">↑</span>
+                    <div style="font-size: 0.75em; color: #7f8c8d;">
+                        Antes: ${p.precioAnterior}
+                    </div>
+                `;
+            }
+
             // Usamos la clase 'product-card' para aplicar los nuevos estilos
             return `
                 <div class="product-card" onclick="cargarData('${p._id}', '${p.nombre.replace(/'/g, "\\'")}', this)">
                     <div class="brand">${p.fuente}</div>
-                    <div class="price">${displayPrecio}</div>
+                    <div class="price" style="color: ${colorPrecio}; display: flex; align-items: baseline; flex-wrap: wrap;">
+                        ${displayPrecio} ${tendenciaHTML}
+                    </div>
                     <div style="font-size: 0.9em; color: #333; margin-bottom: 8px; line-height: 1.2;">${p.nombre}</div>
                     <a href="${p.enlace}" target="_blank" onclick="event.stopPropagation()" class="link-btn">🔗 Abrir enlace</a>
                 </div>`;

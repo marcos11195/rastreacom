@@ -1,20 +1,23 @@
 const mongoose = require("mongoose");
 
-const productoSchema = new mongoose.Schema({
+const ProductoSchema = new mongoose.Schema({
+    enlace: { type: String, unique: true },
     termino: String,
     nombre: String,
-    enlace: { type: String, unique: true },
     fuente: String,
     precio: String,
-    createdAt: { type: Date, default: Date.now }
+    // --- NUEVOS CAMPOS ---
+    precioAnterior: { type: String, default: null },
+    tendencia: { type: String, enum: ['subida', 'bajada', 'igual', null], default: null },
+    ultimaActualizacion: { type: Date, default: Date.now }
 });
 
-const rawDataSchema = new mongoose.Schema({
-    productoId: { type: mongoose.Schema.Types.ObjectId, ref: 'Producto' },
+const RawDataSchema = new mongoose.Schema({
+    productoId: { type: mongoose.Schema.Types.ObjectId, ref: "Producto" },
     jsonContenido: String
 });
 
-const Producto = mongoose.model("Producto", productoSchema);
-const RawData = mongoose.model("RawData", rawDataSchema);
+const Producto = mongoose.model("Producto", ProductoSchema);
+const RawData = mongoose.model("RawData", RawDataSchema);
 
 module.exports = { Producto, RawData };

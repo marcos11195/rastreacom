@@ -98,6 +98,7 @@ router.post("/login", async (req, res) => {
 router.get("/dashboard", isLoggedIn, async (req, res) => {
   try {
     // Obtenemos los productos para pasarlos al inspector del dashboard
+    // Mantenemos el orden por creación para la vista inicial
     const productos = await Producto.find().sort({ createdAt: -1 });
     // Nota: 'currentUser' ya está en res.locals gracias al middleware de contexto
     res.render("dashboard", { productos });
@@ -110,6 +111,7 @@ router.get("/dashboard", isLoggedIn, async (req, res) => {
 // API PRODUCTOS (NUEVO: Para actualizar en vivo)
 router.get("/api/productos", isLoggedIn, async (req, res) => {
   try {
+    // Importante: devolvemos todos los campos (tendencia, precioAnterior) para que el frontend los use
     const productos = await Producto.find().sort({ createdAt: -1 });
     res.json(productos);
   } catch (error) {

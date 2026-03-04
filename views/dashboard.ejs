@@ -76,6 +76,7 @@
                 const formData = new FormData(this);
                 const query = new URLSearchParams(formData).toString();
 
+                // Iniciamos el scraping en el servidor
                 fetch('/auth/buscar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -101,13 +102,12 @@
                             stableTicks = 0; 
                             if (typeof renderizar === 'function') renderizar();
                         } else if (!hayPendientes) {
-                            // 3. Si no ha cambiado nada Y no hay precios pendientes, sumamos tick
+                            // 3. Si no ha cambiado nada Y no hay precios pendientes, sumamos tick para terminar
                             stableTicks++;
                         }
 
-                        // Si en 2 ciclos (4 segundos) no hay NADA nuevo y todo está procesado, cerramos
-                        // Bajamos de 15 a 2 ticks para que sea casi instantáneo al terminar
-                        if (stableTicks >= 2) {
+                        // Si en 3 ciclos (6 segundos) no hay cambios y no hay pendientes, cerramos spinner
+                        if (stableTicks >= 3) {
                             detenerPolling(btn);
                         }
                     } catch (err) {
@@ -115,6 +115,7 @@
                     }
                 }, 2000);
 
+                // Timeout de seguridad de 5 minutos
                 setTimeout(() => detenerPolling(btn), 300000);
             };
 

@@ -132,29 +132,49 @@ async function buscarYVincular(query) {
                         console.log(`   (${index}/${links.length}) Procesando: ${item.nombre.substring(0, 40)}...`);
                         
                         let p = await Producto.findOne({ enlace: item.link });
+                        const data = await extraerMetadatosProfundos(page, item.link);
                         
-                        if (!p) {
+                        const nuevoPrecioNum = parseFloat(data.precio);
+                        let actualizacion = { 
+                            precio: data.precio,
+                            ultimaActualizacion: new Date()
+                        };
+
+                        if (p) {
+                            // --- LÓGICA DE COMPARACIÓN Y TENDENCIA ---
+                            const precioViejoNum = parseFloat(p.precio);
+
+                            if (!isNaN(nuevoPrecioNum) && !isNaN(precioViejoNum) && nuevoPrecioNum !== precioViejoNum) {
+                                actualizacion.precioAnterior = p.precio;
+                                actualizacion.tendencia = nuevoPrecioNum < precioViejoNum ? "bajada" : "subida";
+
+                                // Logs visuales para detectar cambios en la terminal
+                                if (actualizacion.tendencia === "bajada") {
+                                    console.log(`      ✅ [OFERTA] ${p.precio} -> ${data.precio}`);
+                                } else {
+                                    console.log(`      📈 [SUBIDA] ${p.precio} -> ${data.precio}`);
+                                }
+                            }
+                            
+                            await Producto.findByIdAndUpdate(p._id, actualizacion);
+                        } else {
+                            // Si no existe, lo creamos
                             p = await Producto.create({
                                 enlace: item.link,
                                 termino: query,
                                 nombre: item.nombre,
                                 fuente: f.nombre,
-                                precio: "S/P"
+                                precio: data.precio
                             });
                         }
 
-                        const existeData = await RawData.exists({ productoId: p._id });
+                        // Guardamos siempre el RawData para tener el último JSON disponible
+                        await RawData.findOneAndUpdate(
+                            { productoId: p._id }, 
+                            { jsonContenido: data.json }, 
+                            { upsert: true }
+                        );
                         
-                        // Si el precio es S/P o Error, intentamos extraerlo con la nueva lógica
-                        if (!existeData || p.precio === "S/P" || p.precio === "Error") {
-                            const data = await extraerMetadatosProfundos(page, item.link);
-                            await Producto.findByIdAndUpdate(p._id, { precio: data.precio });
-                            await RawData.findOneAndUpdate(
-                                { productoId: p._id }, 
-                                { jsonContenido: data.json }, 
-                                { upsert: true }
-                            );
-                        }
                     } catch (err) { 
                         console.error(`   [!] Error en item ${index}:`, err.message);
                     }
