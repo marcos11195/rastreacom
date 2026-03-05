@@ -4,7 +4,6 @@ const itemsPorPagina = 7;
 let currentRawData = "";
 
 function renderizar() {
-    // Usamos la variable global que actualiza el dashboard
     const productos = window.todosLosProductos || [];
     const filtrados = productos.filter(p => p.fuente === tiendaActual);
     
@@ -28,20 +27,10 @@ function renderizar() {
 
             if (p.tendencia === 'bajada') {
                 colorPrecio = '#27ae60'; 
-                tendenciaHTML = `
-                    <span style="color: ${colorPrecio}; font-weight: bold; margin-left: 5px;">↓</span>
-                    <div style="font-size: 0.75em; color: #7f8c8d; text-decoration: line-through;">
-                        Antes: ${p.precioAnterior}
-                    </div>
-                `;
+                tendenciaHTML = `<span style="color: ${colorPrecio}; font-weight: bold; margin-left: 5px;">↓</span><div style="font-size: 0.75em; color: #7f8c8d; text-decoration: line-through;">Antes: ${p.precioAnterior}</div>`;
             } else if (p.tendencia === 'subida') {
                 colorPrecio = '#e74c3c'; 
-                tendenciaHTML = `
-                    <span style="color: ${colorPrecio}; font-weight: bold; margin-left: 5px;">↑</span>
-                    <div style="font-size: 0.75em; color: #7f8c8d;">
-                        Antes: ${p.precioAnterior}
-                    </div>
-                `;
+                tendenciaHTML = `<span style="color: ${colorPrecio}; font-weight: bold; margin-left: 5px;">↑</span><div style="font-size: 0.75em; color: #7f8c8d;">Antes: ${p.precioAnterior}</div>`;
             }
 
             return `
@@ -64,11 +53,7 @@ function renderizarPaginacion(total) {
     let pagHTML = '';
     if (total > 1) {
         for (let i = 1; i <= total; i++) {
-            pagHTML += `
-                <button class="page-btn ${i === paginaActual ? 'active' : ''}" 
-                        onclick="irPagina(${i})">
-                    ${i}
-                </button>`;
+            pagHTML += `<button class="page-btn ${i === paginaActual ? 'active' : ''}" onclick="irPagina(${i})">${i}</button>`;
         }
     }
     pagDiv.innerHTML = pagHTML;
@@ -93,41 +78,28 @@ function irPagina(p) {
 async function cargarData(id, nombre, element) {
     document.querySelectorAll('.product-card').forEach(c => c.classList.remove('active'));
     if (element) element.classList.add('active');
-    
     document.getElementById('ins-titulo').innerText = "Inspeccionando: " + nombre;
     const viewer = document.getElementById('jsonViewer');
-    viewer.textContent = "Cargando metadatos desde DB...";
-
+    viewer.textContent = "Cargando metadatos...";
     try {
         const res = await fetch('/auth/api/raw/' + id);
         const data = await res.json();
         currentRawData = data.jsonContenido;
         viewer.textContent = currentRawData; 
-        viewer.scrollTop = 0;
-    } catch (e) {
-        viewer.innerText = "Error al conectar con la API de datos.";
-    }
+    } catch (e) { viewer.innerText = "Error al cargar."; }
 }
 
 function filtrarJson() {
     const search = document.getElementById('ins-filter').value.trim();
     const viewer = document.getElementById('jsonViewer');
-    if (!search || search.length < 2) {
-        viewer.textContent = currentRawData;
-        return;
-    }
+    if (!search || search.length < 2) { viewer.textContent = currentRawData; return; }
     const regex = new RegExp(search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), "gi");
     viewer.innerHTML = currentRawData.replace(regex, (match) => `<span class="highlight">${match}</span>`);
-    
-    const firstMatch = viewer.querySelector('.highlight');
-    if (firstMatch) firstMatch.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 
-// Exportación para dashboard.ejs
 window.renderizar = renderizar;
 window.cambiarTienda = cambiarTienda;
 window.irPagina = irPagina;
 window.cargarData = cargarData;
 window.filtrarJson = filtrarJson;
-
 document.addEventListener("DOMContentLoaded", renderizar);

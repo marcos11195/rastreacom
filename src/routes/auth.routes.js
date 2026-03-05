@@ -76,8 +76,9 @@ router.post("/login", async (req, res) => {
 // DASHBOARD
 router.get("/dashboard", isLoggedIn, async (req, res) => {
   try {
-    const productos = await Producto.find().sort({ createdAt: -1 }).lean();
-    res.render("dashboard", { productos });
+    // Ordenamos por ultimaActualizacion para que el Live Search muestre lo más reciente arriba
+    const productos = await Producto.find().sort({ ultimaActualizacion: -1 }).lean();
+    res.render("dashboard", { productos, currentUser: req.session.currentUser });
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: "Error al cargar el dashboard" });
@@ -87,7 +88,8 @@ router.get("/dashboard", isLoggedIn, async (req, res) => {
 // API PRODUCTOS (Optimizado para Live Search)
 router.get("/api/productos", isLoggedIn, async (req, res) => {
   try {
-    const productos = await Producto.find().sort({ createdAt: -1 }).lean();
+    // Importante: El mismo sort que el dashboard para consistencia visual
+    const productos = await Producto.find().sort({ ultimaActualizacion: -1 }).lean();
     res.json(productos);
   } catch (error) {
     res.status(500).json([]);
@@ -106,6 +108,7 @@ router.get("/api/raw/:id", isLoggedIn, async (req, res) => {
 
 // BUSCAR
 router.post("/buscar", isLoggedIn, (req, res) => {
+  // Pasamos la query al scraper
   buscarYVincular(req.body.query).catch(err => console.error("Error Scraper:", err));
   res.status(200).send("Scraping iniciado");
 });

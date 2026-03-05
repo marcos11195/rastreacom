@@ -62,7 +62,6 @@
         </div>
 
         <script>
-            // Mantenemos tu base estructural y variables de control
             window.todosLosProductos = <%- JSON.stringify(productos) %>;
             let refreshInterval = null;
             let stableTicks = 0; 
@@ -77,7 +76,6 @@
                 const formData = new FormData(this);
                 const query = new URLSearchParams(formData).toString();
 
-                // Iniciamos el scraping (No bloqueante)
                 fetch('/auth/buscar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -89,36 +87,30 @@
                 
                 refreshInterval = setInterval(async () => {
                     try {
-                        // Cache busting con timestamp para datos frescos
                         const res = await fetch('/auth/api/productos?t=' + Date.now());
-                        const data = await res.json();
+                        const nuevosDatos = await res.json();
                         
-                        // 1. Comprobamos si hay algún producto que aún no tenga precio final (Zalando o Adidas)
-                        const hayPendientes = data.some(p => !p.precio || p.precio === 'Pendiente...' || p.precio === 'S/P');
-                        
-                        // 2. Comprobamos si los datos han cambiado (Nuevos items o precios actualizados)
-                        const haCambiado = (data.length !== window.todosLosProductos.length || JSON.stringify(data.map(p => p.precio)) !== JSON.stringify(window.todosLosProductos.map(p => p.precio)));
+                        // Generamos el hash sobre los datos críticos: ID, Precio y Fecha de actualización
+                        const hashNuevo = nuevosDatos.map(p => p._id + p.precio + p.ultimaActualizacion).join('|');
+                        const hashViejo = window.todosLosProductos.map(p => p._id + p.precio + p.ultimaActualizacion).join('|');
 
-                        if (haCambiado) {
-                            window.todosLosProductos = data;
-                            stableTicks = 0; // Si hay cambios, reseteamos la estabilidad
+                        if (hashNuevo !== hashViejo) {
+                            console.log("Sincronizando cambios...");
+                            window.todosLosProductos = nuevosDatos;
+                            stableTicks = 0; 
                             if (typeof renderizar === 'function') renderizar();
-                        } else if (!hayPendientes) {
-                            // 3. Si no hay cambios Y no hay nada pendiente, sumamos tick para terminar
-                            stableTicks++;
+                        } else {
+                            const hayPendientes = nuevosDatos.some(p => p.precio === 'Pendiente...');
+                            if (!hayPendientes) stableTicks++;
                         }
 
-                        // Detenemos tras 5 ciclos de estabilidad absoluta (10 segundos sin movimientos)
-                        if (stableTicks >= 5) {
+                        if (stableTicks >= 15) { 
                             detenerPolling(btn);
                         }
                     } catch (err) {
-                        console.error("Error actualizando productos:", err);
+                        console.error("Error en Live Search:", err);
                     }
                 }, 2000);
-
-                // Tu timeout de seguridad original (10 minutos para búsquedas largas)
-                setTimeout(() => detenerPolling(btn), 600000);
             };
 
             function detenerPolling(btn) {
