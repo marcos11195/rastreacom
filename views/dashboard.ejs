@@ -19,7 +19,7 @@
 
                 <div id="loadingStatus"
                     style="display:none; align-items:center; gap:8px; margin-left:10px; color:#0e639c; font-weight:bold; font-size:0.9em;">
-                    <div class="spinner"></div> Buscando...
+                    <div class="spinner"></div> Sincronizando datos en vivo...
                 </div>
             </div>
             <div style="display:flex; align-items:center; gap:15px;">
@@ -62,7 +62,8 @@
         </div>
 
         <script>
-            let todosLosProductos = <%- JSON.stringify(productos) %>;
+            // Mantenemos tu base estructural y variables de control
+            window.todosLosProductos = <%- JSON.stringify(productos) %>;
             let refreshInterval = null;
             let stableTicks = 0; 
 
@@ -76,7 +77,7 @@
                 const formData = new FormData(this);
                 const query = new URLSearchParams(formData).toString();
 
-                // Iniciamos el scraping en el servidor
+                // Iniciamos el scraping (No bloqueante)
                 fetch('/auth/buscar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -88,26 +89,27 @@
                 
                 refreshInterval = setInterval(async () => {
                     try {
-                        const res = await fetch('/auth/api/productos');
+                        // Cache busting con timestamp para datos frescos
+                        const res = await fetch('/auth/api/productos?t=' + Date.now());
                         const data = await res.json();
                         
-                        // 1. Comprobamos si hay algún producto que aún no tenga precio final
+                        // 1. Comprobamos si hay algún producto que aún no tenga precio final (Zalando o Adidas)
                         const hayPendientes = data.some(p => !p.precio || p.precio === 'Pendiente...' || p.precio === 'S/P');
                         
-                        // 2. Comprobamos si los datos han cambiado (nuevos items o precios actualizados)
-                        const haCambiado = (data.length !== todosLosProductos.length || JSON.stringify(data) !== JSON.stringify(todosLosProductos));
+                        // 2. Comprobamos si los datos han cambiado (Nuevos items o precios actualizados)
+                        const haCambiado = (data.length !== window.todosLosProductos.length || JSON.stringify(data.map(p => p.precio)) !== JSON.stringify(window.todosLosProductos.map(p => p.precio)));
 
                         if (haCambiado) {
-                            todosLosProductos = data;
-                            stableTicks = 0; 
+                            window.todosLosProductos = data;
+                            stableTicks = 0; // Si hay cambios, reseteamos la estabilidad
                             if (typeof renderizar === 'function') renderizar();
                         } else if (!hayPendientes) {
-                            // 3. Si no ha cambiado nada Y no hay precios pendientes, sumamos tick para terminar
+                            // 3. Si no hay cambios Y no hay nada pendiente, sumamos tick para terminar
                             stableTicks++;
                         }
 
-                        // Si en 3 ciclos (6 segundos) no hay cambios y no hay pendientes, cerramos spinner
-                        if (stableTicks >= 3) {
+                        // Detenemos tras 5 ciclos de estabilidad absoluta (10 segundos sin movimientos)
+                        if (stableTicks >= 5) {
                             detenerPolling(btn);
                         }
                     } catch (err) {
@@ -115,8 +117,8 @@
                     }
                 }, 2000);
 
-                // Timeout de seguridad de 5 minutos
-                setTimeout(() => detenerPolling(btn), 300000);
+                // Tu timeout de seguridad original (10 minutos para búsquedas largas)
+                setTimeout(() => detenerPolling(btn), 600000);
             };
 
             function detenerPolling(btn) {
@@ -126,6 +128,7 @@
                 }
                 document.getElementById('loadingStatus').style.display = 'none';
                 btn.disabled = false;
+                console.log("Polling finalizado.");
             }
         </script>
         <script src="/js/inspector.js"></script>

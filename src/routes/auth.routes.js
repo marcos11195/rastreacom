@@ -16,43 +16,30 @@ router.get("/register", isLoggedOut, (req, res) => {
 router.post("/register", async (req, res) => {
   try {
     const { nombre, email, password, password2, edad } = req.body;
-
-    // 1. Validación: Campos obligatorios
     if (!nombre || !email || !password || !password2 || !edad) {
       return res.status(400).send({ message: "Todos los campos son obligatorios" });
     }
-
-    // 2. Validación: Coincidencia de contraseñas
     if (password !== password2) {
       return res.status(400).send({ message: "Las contraseñas no coinciden" });
     }
-
-    // 3. Validación: Email ya registrado
     const userExists = await User.findOne({ email });
     if (userExists) {
       return res.status(400).send({ message: "El correo electrónico ya está registrado" });
     }
-
-    // 4. Hashear la contraseña
     const saltRounds = 10;
     const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    // 5. Crear y guardar el usuario en la base de datos
     const newUser = new User({
       nombre,
       email,
       password: hashedPassword,
       edad: edad || null
     });
-
     const savedUser = await newUser.save();
-
     if (savedUser) {
       res.redirect("/auth/login");
     } else {
       res.status(500).send({ message: "Error al crear el usuario" });
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: "Error al procesar el registro" });
@@ -67,27 +54,19 @@ router.get("/login", isLoggedOut, (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
-
     if (!email || !password) {
       return res.status(400).send({ message: "Email y contraseña son obligatorios" });
     }
-
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).send({ message: "Credenciales inválidas" });
     }
-
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).send({ message: "Credenciales inválidas" });
     }
-
-    // --- GUARDAR SESIÓN ---
     req.session.currentUser = user;
-    
-    // Redirigir al dashboard tras login exitoso
     res.redirect("/auth/dashboard");
-
   } catch (error) {
     console.error(error);
     res.status(500).send({ message: "Error al procesar el login" });
@@ -97,10 +76,7 @@ router.post("/login", async (req, res) => {
 // DASHBOARD
 router.get("/dashboard", isLoggedIn, async (req, res) => {
   try {
-    // Obtenemos los productos para pasarlos al inspector del dashboard
-    // Mantenemos el orden por creación para la vista inicial
-    const productos = await Producto.find().sort({ createdAt: -1 });
-    // Nota: 'currentUser' ya está en res.locals gracias al middleware de contexto
+    const productos = await Producto.find().sort({ createdAt: -1 }).lean();
     res.render("dashboard", { productos });
   } catch (error) {
     console.error(error);
@@ -108,36 +84,33 @@ router.get("/dashboard", isLoggedIn, async (req, res) => {
   }
 });
 
-// API PRODUCTOS (NUEVO: Para actualizar en vivo)
+// API PRODUCTOS (Optimizado para Live Search)
 router.get("/api/productos", isLoggedIn, async (req, res) => {
   try {
-    // Importante: devolvemos todos los campos (tendencia, precioAnterior) para que el frontend los use
-    const productos = await Producto.find().sort({ createdAt: -1 });
+    const productos = await Producto.find().sort({ createdAt: -1 }).lean();
     res.json(productos);
   } catch (error) {
     res.status(500).json([]);
   }
 });
 
-// API RAW DATA (Para el inspector JSON)
+// API RAW DATA
 router.get("/api/raw/:id", isLoggedIn, async (req, res) => {
   try {
-    const data = await RawData.findOne({ productoId: req.params.id });
+    const data = await RawData.findOne({ productoId: req.params.id }).lean();
     res.json(data || { jsonContenido: "{}" });
   } catch (error) {
     res.status(500).json({ error: "Error al obtener data" });
   }
 });
 
-// BUSCAR (Modificado: No bloqueante para actualización en vivo)
+// BUSCAR
 router.post("/buscar", isLoggedIn, (req, res) => {
-  // Quitamos el await para que el scraper corra en background
   buscarYVincular(req.body.query).catch(err => console.error("Error Scraper:", err));
-  // Respondemos rápido para que el Dashboard inicie el ciclo de refresco
   res.status(200).send("Scraping iniciado");
 });
 
-// BORRAR (Limpia la base de datos de productos)
+// BORRAR
 router.post("/borrar", isLoggedIn, async (req, res) => {
   try {
     await Producto.deleteMany({});
